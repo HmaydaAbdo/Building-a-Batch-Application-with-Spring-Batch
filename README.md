@@ -63,3 +63,39 @@ The key concepts of the Spring Batch domain model are represented in the followi
 * __Step_Execution__: This table holds all information relevant to the execution of a step, such as the start time, end time, item read count, and item write count. Every time a step is run, a new row is inserted in this table.
 * __Step_Execution_Context__: This table holds the execution context of a step. This is similar to the table that holds the execution context of a job, but instead it stores the execution context of a step.
 * __Job_Execution_Params__: This table contains the runtime parameters of a job execution.
+
+## Understanding jobs and how to run them
+### 1. What Is a Job?
+* A Job is an entity that encapsulates an entire batch process that runs from start to finish. It consists of a set of steps that run in a specific order.
+* A batch job in Spring Batch is represented by the Job interface provided by the spring-batch-core dependency:
+* At a fundamental level, the Job interface requires that implementations specify the Job name (the getName() method) and what the Job is supposed to do (the execute method)
+* The execute method gives a reference to a JobExecution object. TheJobExecution represents the actual execution of the Job at runtime. It contains a number of runtime details, such as the start time, the end time, the execution status, and so on. This runtime information is stored by Spring Batch in a metadata repository
+* Note how the execute method isn't expected to throw any exception. Runtime exceptions should be handled by implementations, and added in the JobExecution object. Clients should inspect the JobExecution status to determine success or failure.
+### 2.Understanding Job Metadata
+* One of the key concepts in Spring Batch is the JobRepository. The JobRepository is where all metadata about jobs and steps is stored.
+* A JobRepository could be a persistent store, or an in-memory store.
+* A persistent store has the advantage of providing metadata even after a Job is finished, which could be used for post analysis or to restart a Job in the case of a failure
+### 3.Launching Jobs
+* Launching jobs in Spring Batch is done through the JobLauncher concept, which is represented by the following interface:
+* ```java
+  public interface JobLauncher {
+
+   JobExecution run(Job job, JobParameters jobParameters)
+          throws
+             JobExecutionAlreadyRunningException,
+             JobRestartException,
+             JobInstanceAlreadyCompleteException,
+             JobParametersInvalidException;}  
+  ```
+* The run method is designed to launch a given Job with a set of JobParameters. We'll cover job parameters in detail in a later lesson. For now, you can think of them as a collection of key/value pairs that are passed to the Job at runtime. There are two important aspects to understand here:
+   * It is expected that implementations of the JobLauncher interface obtain a valid JobExecution from the JobRepository and execute the Job.
+   * The run method throws different types of exceptions. We'll cover all of these exceptions in detail during the course.
+* You'll almost never have to implement the JobLauncher interface yourself, because Spring Batch provides an implementation that's ready to use. The following diagram shows how the JobLauncher, the JobRepository and the Job interact with each other.
+
+![img_3.png](img_3.png)
+
+* Batch jobs are typically launched in one of two ways:
+  * From the command line interface
+  * From within a web container
+
+== You will almost never have to implement that interface directly, as Spring Batch provides ready-to-use implementations like SimpleJob for simple sequential step-based jobs and FlowJob for jobs which requires a complex step execution flows. 

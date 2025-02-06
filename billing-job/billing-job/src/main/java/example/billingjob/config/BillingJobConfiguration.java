@@ -1,8 +1,18 @@
 package example.billingjob.config;
 
+
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-//This class is a placeholder for Spring Batch related beans (Jobs, Steps, etc)
+
 @Configuration
 public class BillingJobConfiguration {
+
+    @Bean
+    public Job job(JobRepository jobRepository) {
+        return new BillingJob(jobRepository);
+    }
 }
